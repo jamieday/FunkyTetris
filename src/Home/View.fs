@@ -32,7 +32,7 @@ let boardElm (model: Board) =
         |> List.ofSeq)
 
 let applyToBoard board activePiece =
-  let activeStructure = structure activePiece.Rotation activePiece.Tetrimino
+  let activeStructure = structure activePiece.Rotation activePiece.Tetromino
   activeStructure
     |> List.fold (fun (acc: Board) offset ->
         let activeCellPosition = activePiece.Position + offset

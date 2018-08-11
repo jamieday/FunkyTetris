@@ -22,7 +22,7 @@ module Board =
   let width = 10
   let height = 24
 
-type Tetrimino =
+type Tetromino =
   | L
   | Z
   | S
@@ -43,15 +43,25 @@ let structure _rot tetrimino =
     |> List.map (fun (x, y) -> { X=x; Y=y })
 
 type ActivePiece = 
-  { Tetrimino: Tetrimino
+  { Tetromino: Tetromino
     Position: Position
     Rotation: Rotation }
 
+[<Measure>] type ms
+
 type GameState = { PlacedBoard: Board
                    ActivePiece: ActivePiece
-                   QueuedPieces: Tetrimino seq }
+                   QueuedPieces: Tetromino seq
+                   LastTick: int64
+                   TickFrequency: float<ms> }
 
 type Model = GameState
 
+type ActivePieceMsg =
+  | UpdatePosition of Position
+  | UpdateRotation of Rotation
+
 type Msg =
+  | Tick
   | UpdateBoard of Board
+  | UpdateActivePiece of ActivePieceMsg
