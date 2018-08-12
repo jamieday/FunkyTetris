@@ -15,7 +15,7 @@ type Cell =
 
 type Position = { X: int; Y: int }
 type Position with
-  static member (+) (p1, p2) = { X=p1.X + p2.X; Y=p1.Y + p2.Y }
+  static member (+) ({ X=x1; Y=y1 }, { X=x2; Y=y2 }) = { X=x1 + x2; Y=y1 + y2 }
 
 type Board = Map<Position, Cell option>
 module Board =
@@ -52,13 +52,14 @@ type ActivePiece =
 type GameState = { PlacedBoard: Board
                    ActivePiece: ActivePiece
                    QueuedPieces: Tetromino seq
-                   LastTick: int64
+                   LastDrop: int64
                    TickFrequency: float<ms> }
 
 type Model = GameState
 
 type ActivePieceMsg =
   | UpdatePosition of Position
+  | OffsetPosition of Position
   | UpdateRotation of Rotation
 
 type Msg =
