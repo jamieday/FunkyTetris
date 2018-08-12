@@ -4,10 +4,19 @@ open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Types
 
-let cellElm pos model =
+let toCellClass = function
+  | Cyan -> "cyan"
+  | Blue -> "blue"
+  | Orange -> "orange"
+  | Yellow -> "yellow"
+  | Green -> "green"
+  | Purple -> "purple"
+  | Red -> "red"
+
+let cellElm pos (model: Cell option) =
   let elmClass = 
     (match model with
-    | Some cell -> toCssColor cell.Color
+    | Some cell -> toCellClass cell.Color
     | None -> "empty") |> sprintf "board-cell %s"
 
   div [ Data ("col", pos.X)
@@ -32,13 +41,13 @@ let boardElm (model: Board) =
         |> List.ofSeq)
 
 let applyToBoard board activePiece =
-  let activeStructure = structure activePiece.Rotation activePiece.Tetromino
+  let activeStructure = Tetromino.structure activePiece.Rotation activePiece.Tetromino
   activeStructure
     |> List.fold (fun (acc: Board) offset ->
         let activeCellPosition = activePiece.Position + offset
         match activeCellPosition with
         | {X=x; Y=y} when x < 0 || y < 0 -> acc
-        | _ -> acc.Add (activeCellPosition, Some { Color=Color.Blue })
+        | _ -> acc.Add (activeCellPosition, Some { Color = (Tetromino.toMeta activePiece.Tetromino).Color })
       ) board
 
 let root (model: Model) _dispatch =

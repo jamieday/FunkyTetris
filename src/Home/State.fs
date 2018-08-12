@@ -6,7 +6,6 @@ open Fable.Core
 open System
 open Fable.Import.Browser
 open Fable.PowerPack
-open Fable.Core
 
 let initBoard () =
   seq {
@@ -16,7 +15,7 @@ let initBoard () =
   } |> Map.ofSeq
 
 let nextPiece () =
-  { Tetromino = L; Position = { X = Board.width / 2 - 1; Y = 0 }; Rotation = Up }
+  { Tetromino = Tetromino.L; Position = { X = Board.width / 2 - 1; Y = 0 }; Rotation = Up }
 
 module FPWindow =
   [<Emit("window.setTimeout($1, $0)")>]
@@ -67,7 +66,7 @@ let update msg model : Model * Cmd<Msg> =
 let init () : Model * Cmd<Msg> =
   let gameState = { PlacedBoard     = initBoard ()
                     ActivePiece     = nextPiece ()
-                    QueuedPieces    = [ L; J ]
+                    QueuedPieces    = [ Tetromino.L; Tetromino.J ]
                     LastDrop      = 0L
                     TickFrequency = 1000.<ms> }
   gameState, [ fun dispatch -> dispatch Tick

@@ -12,6 +12,7 @@
     <Compile Include="Counter/State.fs" />
     <Compile Include="Counter/View.fs" />
     <!-- Home -->
+    <Compile Include="Home/Types/Tetromino.fs" />
     <Compile Include="Home/Types.fs" />
     <Compile Include="Home/State.fs" />
     <Compile Include="Home/View.fs" />

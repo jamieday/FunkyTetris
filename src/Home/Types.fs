@@ -1,14 +1,13 @@
 module Home.Types
 
 type Color =
-  | Red
-  | Green
+  | Cyan
   | Blue
-
-let toCssColor = function
-  | Red -> "red"
-  | Green -> "green"
-  | Blue -> "blue"
+  | Orange
+  | Yellow
+  | Green
+  | Purple
+  | Red
 
 type Cell =
   { Color: Color }
@@ -22,28 +21,10 @@ module Board =
   let width = 10
   let height = 24
 
-type Tetromino =
-  | L
-  | Z
-  | S
-  | T
-  | J
-  | O
-
 type Rotation = Up | Right | Down | Left
 
-let structure _rot tetrimino =
-  ( match tetrimino with
-    | L -> [ (0, 0); (1, 0); (0, -1); (0, -2) ]
-    | Z -> [ (-1, 0); (0, 0); (0, 1); (1, 1) ]
-    | S -> [ (1, 0); (0, 0); (0, 1); (-1, 1) ]
-    | T -> [ (0, 1); (0, 0); (-1, 0); (1, 0) ]
-    | J -> [ (0, 0); (-1, 0); (0, -1); (0, -2) ]
-    | O -> [ (0, 0); (0, 1); (1, 1); (1, 0) ] )
-    |> List.map (fun (x, y) -> { X=x; Y=y })
-
 type ActivePiece = 
-  { Tetromino: Tetromino
+  { Tetromino: Tetromino.T
     Position: Position
     Rotation: Rotation }
 
@@ -51,7 +32,7 @@ type ActivePiece =
 
 type GameState = { PlacedBoard: Board
                    ActivePiece: ActivePiece
-                   QueuedPieces: Tetromino seq
+                   QueuedPieces: Tetromino.T seq
                    LastDrop: int64
                    TickFrequency: float<ms> }
 
