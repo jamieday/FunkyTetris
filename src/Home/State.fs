@@ -4,8 +4,11 @@ open Elmish
 open Types
 open Fable.Core
 open System
-open Fable.Import.Browser
 open Fable.PowerPack
+open Fable
+open Home.Types.Game
+open Home.Types.Board
+open FSExtend
 
 let initBoard () =
   seq {
@@ -22,9 +25,9 @@ module FPWindow =
   let setTimeout (ms: float<ms>) (f: unit -> unit) = Exceptions.jsNative
 
 let bindKeys (dispatch: Dispatch<Msg>) =
-  console.log("Binding keys")
-  document.addEventListener_keydown (fun evt ->
-    console.log(sprintf "Key pressed: %f (%f?)" evt.keyCode Keyboard.Codes.right_arrow)
+  Fable.Import.Browser.console.log("Binding keys")
+  Fable.Import.Browser.document.addEventListener_keydown (fun evt ->
+    Fable.Import.Browser.console.log(sprintf "Key pressed: %f (%f?)" evt.keyCode Keyboard.Codes.right_arrow)
     let msg = match evt.keyCode with
               | Keyboard.Codes.up_arrow -> UpdatePosition { X = 0; Y = -1 } |> Some
               | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> Some
@@ -48,6 +51,21 @@ let handleTick (model: Model): Model * Cmd<Msg> =
   else
     model, subscriptions
 
+
+
+/// **Description**
+/// Checks the provided tetromino placement
+/// and returns whether or not it is vacant or occupied
+/// **Parameters**
+///   * `newPos` - parameter of type `'a`
+///
+/// **Output Type**
+///   * `'b option`
+///
+/// **Exceptions**
+///
+let analyzePos board tetromino pos = None
+
 let update msg model : Model * Cmd<Msg> =
   match msg with
   | UpdateBoard board ->
@@ -55,9 +73,25 @@ let update msg model : Model * Cmd<Msg> =
   | Tick -> handleTick model
   | UpdateActivePiece apMsg -> 
       match apMsg with
-      | UpdatePosition newPos ->
-          let newActivePiece = { model.ActivePiece with Position = newPos }
-          { model with ActivePiece = newActivePiece }, []
+      | UpdatePosition pos ->
+          let model' =
+            maybe {
+              let posVacant pos =
+                pos
+                  |> model.PlacedBoard.TryFind
+                  |> Option.map (fun cellOpt -> cellOpt.IsNone)
+                  |> Option.defaultValue false
+              let tetroStructure = Tetromino.structure Rotation.Up model.ActivePiece.Tetromino
+              let invalidPos = tetroStructure |> Seq.map ((+) model.ActivePiece.Position) |> Seq.map posVacant |> Seq.contains false
+              let model' = match invalidPos with
+                            | false ->
+                              let activePiece = { model.ActivePiece with Position = pos }
+                              { model with ActivePiece = activePiece }
+                            | true ->
+                              model
+              return model'                          
+            }
+          model' |> Option.defaultValue model, []
       | OffsetPosition offset ->
           let newActivePiece = { model.ActivePiece with Position = model.ActivePiece.Position + offset }
           { model with ActivePiece = newActivePiece }, []

@@ -1,6 +1,8 @@
 module Home.Types.Tetromino
 
-type T =
+open Home.Types.Board
+
+type Tetromino =
   | L
   | Z
   | S
@@ -27,4 +29,5 @@ let structure _rot tetrimino =
     | T -> [ (0, 1); (0, 0); (-1, 0); (1, 0) ]
     | J -> [ (0, 0); (-1, 0); (0, -1); (0, -2) ]
     | O -> [ (0, 0); (0, 1); (1, 1); (1, 0) ] )
-    |> List.map (fun (x, y) -> { X=x; Y=y })
+    |> Seq.ofList
+    |> Seq.map (fun (x, y) -> { X=x; Y=y })

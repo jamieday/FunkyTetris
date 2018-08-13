@@ -3,6 +3,9 @@ module Home.View
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Types
+open Home.Types.Board
+open Home.Types.Game
+open Home.Types.Tetromino
 
 let toCellClass = function
   | Cyan -> "cyan"
@@ -43,7 +46,7 @@ let boardElm (model: Board) =
 let applyToBoard board activePiece =
   let activeStructure = Tetromino.structure activePiece.Rotation activePiece.Tetromino
   activeStructure
-    |> List.fold (fun (acc: Board) offset ->
+    |> Seq.fold (fun (acc: Board) offset ->
         let activeCellPosition = activePiece.Position + offset
         match activeCellPosition with
         | {X=x; Y=y} when x < 0 || y < 0 -> acc
