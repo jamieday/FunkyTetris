@@ -7,4 +7,4 @@ type Model = GameState
 type Msg =
   | Tick
   | UpdateBoard of Home.Types.Board.Board
-  | UpdateActivePiece of ActivePieceMsg
+  | UpdateActivePiece of Home.Types.Game.ActivePieceMsg

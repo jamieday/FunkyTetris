@@ -8,18 +8,20 @@ type Rotation = Up | Right | Down | Left
 type ActivePiece = 
   { Tetromino: Tetromino
     Position: Position
-    Rotation: Rotation }
+    Rotation: Rotation
+    LastDrop: int64 }
+
 
 [<Measure>] type ms
 
 type GameState = { PlacedBoard: Board
                    ActivePiece: ActivePiece
                    QueuedPieces: Tetromino seq
-                   LastDrop: int64
                    TickFrequency: float<ms> }
 
 
 type ActivePieceMsg =
+  | Drop
   | UpdatePosition of Position
   | OffsetPosition of Position
   | UpdateRotation of Rotation
