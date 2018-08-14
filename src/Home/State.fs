@@ -7,6 +7,7 @@ open System
 open Fable.PowerPack
 open Fable
 open Home.Types.Game
+open Home.Types.Tetromino
 open Home.Types.Board
 open FSExtend
 
@@ -29,7 +30,7 @@ let bindKeys (dispatch: Dispatch<Msg>) =
   Fable.Import.Browser.document.addEventListener_keydown (fun evt ->
     Fable.Import.Browser.console.log(sprintf "Key pressed: %f (%f?)" evt.keyCode Keyboard.Codes.right_arrow)
     let msg = match evt.keyCode with
-              | Keyboard.Codes.up_arrow -> UpdatePosition { X = 0; Y = -1 } |> Some
+              | Keyboard.Codes.up_arrow -> UpdateRotation Clockwise |> Some
               | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> Some
               | Keyboard.Codes.down_arrow -> Drop |> Some
               | Keyboard.Codes.left_arrow -> OffsetPosition { X = -1; Y = 0 } |> Some
@@ -104,8 +105,11 @@ let update msg model : Model * Cmd<Msg> =
             |> Option.map (fun p -> { model.ActivePiece with Position = p })
             |> Option.defaultValue model.ActivePiece
           { model with ActivePiece = activePiece }, []
-      | UpdateRotation(_) -> failwith "Not Implemented"
-
+      | UpdateRotation spin ->
+          match spin with
+          | Clockwise -> 
+              { model with ActivePiece = { model.ActivePiece with Rotation = Right } }, []
+              
 let init () : Model * Cmd<Msg> =
   let gameState = { PlacedBoard     = initBoard ()
                     ActivePiece     = nextPiece ()

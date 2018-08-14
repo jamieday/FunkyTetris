@@ -10,6 +10,8 @@ type Tetromino =
   | J
   | O
 
+type Rotation = Up | Right | Down | Left
+
 type MetaInfo = { Color: Color }
 
 let toMeta = function
@@ -21,7 +23,7 @@ let toMeta = function
   | T -> { Color = Color.Purple }
   | Z -> { Color = Color.Red }
 
-let structure _rot tetrimino =
+let structure (rot: Rotation) tetrimino =
   ( match tetrimino with
     | L -> [ (0, 0); (1, 0); (0, -1); (0, -2) ]
     | Z -> [ (-1, 0); (0, 0); (0, 1); (1, 1) ]
@@ -30,4 +32,10 @@ let structure _rot tetrimino =
     | J -> [ (0, 0); (-1, 0); (0, -1); (0, -2) ]
     | O -> [ (0, 0); (0, 1); (1, 1); (1, 0) ] )
     |> Seq.ofList
-    |> Seq.map (fun (x, y) -> { X=x; Y=y })
+    |> Seq.map ((fun (x, y) ->
+                  match rot with
+                  | Up -> (x, y)
+                  | Right -> (-y, -x)
+                  | Down -> (x, y)
+                  | Left -> (x, y))
+                >> fun (x, y) -> { X=x; Y=y })

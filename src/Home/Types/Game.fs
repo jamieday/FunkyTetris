@@ -3,8 +3,6 @@ module Home.Types.Game
 open Home.Types.Board
 open Home.Types.Tetromino
 
-type Rotation = Up | Right | Down | Left
-
 type ActivePiece = 
   { Tetromino: Tetromino
     Position: Position
@@ -19,9 +17,10 @@ type GameState = { PlacedBoard: Board
                    QueuedPieces: Tetromino seq
                    TickFrequency: float<ms> }
 
+type Spin = Clockwise | CounterClockwise
 
 type ActivePieceMsg =
   | Drop
   | UpdatePosition of Position
   | OffsetPosition of Position
-  | UpdateRotation of Rotation
+  | UpdateRotation of Spin
