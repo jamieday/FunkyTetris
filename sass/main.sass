@@ -22,19 +22,38 @@ $black: #202020
   border-color: $black
 
 .board
+  display: flex;
+  flex-direction: column;
+  width: 250px
+  border-radius: 2px
+  box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
   .board-row
-    display: block
-    width: 100%
+    flex: 1
+    display: flex
     height: 25px
     .board-cell
-      display: inline-block
-      width: 25px
-      height: 100%
+      flex: 1
       &.empty
-        background-color: #9E9E9E
-      &.orange
-        background-color: #FF9800
-        border: 1px solid #FFCC80
+        background-color: #E0E0E0
+        border: 1px solid #E0E0E0
       &.cyan
         background-color: #00BCD4
         border: 1px solid #80DEEA
+      &.blue
+        background-color: #2196F3
+        border: 1px solid #90CAF9
+      &.orange
+        background-color: #FF9800
+        border: 1px solid #FFCC80
+      &.yellow
+        background-color: #FFEB3B
+        border: 1px solid #FFF59D
+      &.green
+        background-color: #4CAF50
+        border: 1px solid #A5D6A7
+      &.purple
+        background-color: #9C27B0
+        border: 1px solid #CE93D8
+      &.red
+        background-color: #F44336
+        border: 1px solid #EF9A9A
