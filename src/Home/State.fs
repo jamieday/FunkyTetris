@@ -18,8 +18,15 @@ let initBoard () =
         yield { X=j; Y=i }, None
   } |> Map.ofSeq
 
+let randNullaryUnion<'t>() = 
+  let cases = Reflection.FSharpType.GetUnionCases(typeof<'t>)
+  let index = System.Random().Next(cases.Length)
+  let case = cases.[index]
+  Reflection.FSharpValue.MakeUnion(case, [||]) :?> 't
+
 let nextPiece () =
-  { Tetromino = Tetromino.L; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up; LastDrop = DateTime.Now.Ticks }
+  let nextTetromino = randNullaryUnion<Tetromino>()
+  { Tetromino = nextTetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up; LastDrop = DateTime.Now.Ticks }
 
 module FPWindow =
   [<Emit("window.setTimeout($1, $0)")>]
