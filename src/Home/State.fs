@@ -37,6 +37,7 @@ let bindKeys (dispatch: Dispatch<Msg>) =
   Fable.Import.Browser.document.addEventListener_keydown (fun evt ->
     Fable.Import.Browser.console.log(sprintf "Key pressed: %f (%f?)" evt.keyCode Keyboard.Codes.right_arrow)
     let msg = match evt.keyCode with
+              | 32. -> HardDrop |> Some // Spacebar
               | Keyboard.Codes.up_arrow -> UpdateRotation Clockwise |> Some
               | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> Some
               | Keyboard.Codes.down_arrow -> Drop |> Some
@@ -48,15 +49,15 @@ let bindKeys (dispatch: Dispatch<Msg>) =
     null)
 
 
-let validateMove (board: Board) pos activePiece =
+let validatePiece (board: Board) { Tetromino=tetro; Rotation=rot; Position=pos } =
   let posVacant pos =
     pos
       |> board.TryFind
       |> Option.map (fun cellOpt -> cellOpt.IsNone)
       |> Option.defaultValue false
-  let tetroStructure = Tetromino.structure Rotation.Up activePiece.Tetromino
+  let tetroStructure = Tetromino.structure rot tetro
   let invalidPos = tetroStructure |> Seq.map ((+) pos) |> Seq.map posVacant |> Seq.contains false
-  if invalidPos then None else Some pos
+  not invalidPos 
 
 let handleTick (model: Model): Model * Cmd<Msg> =
   // Optimization so we don't spam ticks
@@ -68,9 +69,9 @@ let handleTick (model: Model): Model * Cmd<Msg> =
   else
     model, subscriptions
 
-let applyToBoard (board: Board) ({ Tetromino=tetromino; Position=pos }: ActivePiece) =
+let applyToBoard (board: Board) ({ Tetromino=tetromino; Rotation=rot; Position=pos }: ActivePiece) =
   let cell = { Color = (Tetromino.toMeta tetromino).Color }
-  Tetromino.structure Rotation.Up tetromino
+  Tetromino.structure rot tetromino
   |> Seq.map ((+) pos)
   |> Seq.fold (fun (board: Board) pos -> board.Add (pos, Some cell)) board
   
@@ -82,41 +83,54 @@ let update msg model : Model * Cmd<Msg> =
   | UpdateActivePiece apMsg -> 
       match apMsg with
       | Drop ->
-          let pos' = let { X=x; Y=y } = model.ActivePiece.Position in { X=x; Y=y+1 }
-          let droppedPiece =
-            model.ActivePiece
-            |> validateMove model.PlacedBoard pos'
-            |> Option.map (fun p -> { model.ActivePiece with Position = p })
+          let activePiece' = 
+            let pos' = let { X=x; Y=y } = model.ActivePiece.Position in { X=x; Y=y+1 }
+            { model.ActivePiece with Position = pos' }
+          let isValid = activePiece' |> validatePiece model.PlacedBoard
 
           let model' =
-            match droppedPiece with
-            | Some piece -> { model with ActivePiece = piece }
-            | None ->
+            match isValid with
+            | true -> { model with ActivePiece = activePiece' }
+            | false ->
                 let board' = model.ActivePiece |> applyToBoard model.PlacedBoard
                 let activePiece' = nextPiece ()
                 { model with PlacedBoard = board'; ActivePiece = activePiece' }
 
-          model', []            
-      | UpdatePosition pos ->
-          let activePiece = 
-            model.ActivePiece
-            |> validateMove model.PlacedBoard pos
-            |> Option.map (fun p -> { model.ActivePiece with Position = p })
-            |> Option.defaultValue model.ActivePiece
+          model', []
+      | HardDrop ->
+          let activePiece' = 
+            let pos' = let { X=x; Y=y } = model.ActivePiece.Position in { X=x; Y=y+1 }
+            { model.ActivePiece with Position = pos' }
+          let isValid = activePiece' |> validatePiece model.PlacedBoard
 
-          { model with ActivePiece = activePiece }, []
+          let model' =
+            match isValid with
+            | true -> { model with ActivePiece = activePiece' }
+            | false ->
+                let board' = model.ActivePiece |> applyToBoard model.PlacedBoard
+                let activePiece' = nextPiece ()
+                { model with PlacedBoard = board'; ActivePiece = activePiece' }
+
+          model', []
+      | UpdatePosition pos ->
+          let piece' = { model.ActivePiece with Position = pos }
+          let isValid = piece' |> validatePiece model.PlacedBoard
+
+          let model' = if isValid then { model with ActivePiece = piece' } else model
+          model', []
       | OffsetPosition offset ->
-          let activePiece =
-            model.ActivePiece
-            |> validateMove model.PlacedBoard (model.ActivePiece.Position + offset)
-            |> Option.map (fun p -> { model.ActivePiece with Position = p })
-            |> Option.defaultValue model.ActivePiece
-          { model with ActivePiece = activePiece }, []
+          let piece' = { model.ActivePiece with Position = model.ActivePiece.Position + offset }
+          let isValid = piece' |> validatePiece model.PlacedBoard
+
+          let model' = if isValid then { model with ActivePiece = piece' } else model
+          model', []
       | UpdateRotation spin ->
-          match spin with
-          | Clockwise -> 
-              { model with ActivePiece = { model.ActivePiece with Rotation = Right } }, []
-              
+          let nextRot = model.ActivePiece.Rotation |> Spin.nextRot spin
+          let piece' = { model.ActivePiece with Rotation = nextRot }
+          let isValid = piece' |> validatePiece model.PlacedBoard
+          let model' = if isValid then { model with ActivePiece = piece' } else model
+          model', []      
+
 let init () : Model * Cmd<Msg> =
   let gameState = { PlacedBoard     = initBoard ()
                     ActivePiece     = nextPiece ()

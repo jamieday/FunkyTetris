@@ -3,6 +3,7 @@ module Home.Types.Tetromino
 open Home.Types.Board
 
 type Tetromino =
+  | I
   | L
   | Z
   | S
@@ -25,17 +26,18 @@ let toMeta = function
 
 let structure (rot: Rotation) tetrimino =
   ( match tetrimino with
+    | I -> [ (0, 0); (0, -1); (0, 1); (0, -2) ]
+    | J -> [ (0, 0); (-1, 0); (0, -1); (0, -2) ]
     | L -> [ (0, 0); (1, 0); (0, -1); (0, -2) ]
-    | Z -> [ (-1, 0); (0, 0); (0, 1); (1, 1) ]
+    | O -> [ (0, 0); (0, 1); (1, 1); (1, 0) ]
     | S -> [ (1, 0); (0, 0); (0, 1); (-1, 1) ]
     | T -> [ (0, 1); (0, 0); (-1, 0); (1, 0) ]
-    | J -> [ (0, 0); (-1, 0); (0, -1); (0, -2) ]
-    | O -> [ (0, 0); (0, 1); (1, 1); (1, 0) ] )
+    | Z -> [ (-1, 0); (0, 0); (0, 1); (1, 1) ] )
     |> Seq.ofList
     |> Seq.map ((fun (x, y) ->
                   match rot with
                   | Up -> (x, y)
-                  | Right -> (-y, -x)
-                  | Down -> (x, y)
-                  | Left -> (x, y))
+                  | Right -> (-y, x)
+                  | Down -> (-x, -y)
+                  | Left -> (y, -x))
                 >> fun (x, y) -> { X=x; Y=y })
