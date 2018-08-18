@@ -9,9 +9,7 @@ open Types
 
 let pageParser: Parser<Page->Page,Page> =
   oneOf [
-    map About (s "about")
-    map Counter (s "counter")
-    map Home (s "home")
+    map Game (s "game")
   ]
 
 let urlUpdate (result: Option<Page>) model =
@@ -23,22 +21,16 @@ let urlUpdate (result: Option<Page>) model =
       { model with currentPage = page }, []
 
 let init result =
-  let (counter, counterCmd) = Counter.State.init()
-  let (home, homeCmd) = Home.State.init()
+  let (game, gameCmd) = Game.State.init()
   let (model, cmd) =
     urlUpdate result
-      { currentPage = Home
-        counter = counter
-        home = home }
+      { currentPage = Game
+        game = game }
   model, Cmd.batch [ cmd
-                     Cmd.map CounterMsg counterCmd
-                     Cmd.map HomeMsg homeCmd ]
+                     Cmd.map GameMsg gameCmd ]
 
 let update msg model =
   match msg with
-  | CounterMsg msg ->
-      let (counter, counterCmd) = Counter.State.update msg model.counter
-      { model with counter = counter }, Cmd.map CounterMsg counterCmd
-  | HomeMsg msg ->
-      let (home, homeCmd) = Home.State.update msg model.home
-      { model with home = home }, Cmd.map HomeMsg homeCmd
+  | GameMsg msg ->
+      let (game, gameCmd) = Game.State.update msg model.game
+      { model with game = game }, Cmd.map GameMsg gameCmd

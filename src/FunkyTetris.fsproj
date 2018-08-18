@@ -5,16 +5,12 @@
   <ItemGroup>
     <Compile Include="FSExtend.fs" />
     <Compile Include="Page.fs" />
-    <Compile Include="Info/View.fs" />
-    <Compile Include="Counter/Types.fs" />
-    <Compile Include="Counter/State.fs" />
-    <Compile Include="Counter/View.fs" />
-    <Compile Include="Home/Types/Board.fs" />
-    <Compile Include="Home/Types/Tetromino.fs" />
-    <Compile Include="Home/Types/Game.fs" />
-    <Compile Include="Home/Types.fs" />
-    <Compile Include="Home/State.fs" />
-    <Compile Include="Home/View.fs" />
+    <Compile Include="Game/Types/Board.fs" />
+    <Compile Include="Game/Types/Tetromino.fs" />
+    <Compile Include="Game/Types/Game.fs" />
+    <Compile Include="Game/Types.fs" />
+    <Compile Include="Game/State.fs" />
+    <Compile Include="Game/View.fs" />
     <Compile Include="Navbar/View.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="State.fs" />

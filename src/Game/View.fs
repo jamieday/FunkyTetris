@@ -1,11 +1,11 @@
-module Home.View
+module Game.View
 
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Types
-open Home.Types.Board
-open Home.Types.Game
-open Home.Types.Tetromino
+open Game.Types.Board
+open Game.Types.Game
+open Game.Types.Tetromino
 
 let toCellClass = function
   | Cyan -> "cyan"

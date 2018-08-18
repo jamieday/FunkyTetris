@@ -1,4 +1,4 @@
-module Home.Types.Board
+module Game.Types.Board
 
 type Color =
   | Cyan

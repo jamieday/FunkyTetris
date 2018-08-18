@@ -1,7 +1,7 @@
-module Home.Types.Game
+module Game.Types.Game
 
-open Home.Types.Board
-open Home.Types.Tetromino
+open Game.Types.Board
+open Game.Types.Tetromino
 
 type ActivePiece = 
   { Tetromino: Tetromino

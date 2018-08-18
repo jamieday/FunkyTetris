@@ -13,33 +13,11 @@ importAll "../sass/main.sass"
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 
-let menuItem label page currentPage =
-    li
-      [ ]
-      [ a
-          [ classList [ "is-active", page = currentPage ]
-            Href (toMeta page).Hash ]
-          [ str label ] ]
-
-let menu currentPage =
-  aside
-    [ ClassName "menu" ]
-    [ p
-        [ ClassName "menu-label" ]
-        [ str "General" ]
-      ul
-        [ ClassName "menu-list" ]
-        [ menuItem "Home" Home currentPage
-          menuItem "Counter sample" Counter currentPage
-          menuItem "About" Page.About currentPage ] ]
-
 let root model dispatch =
 
   let pageHtml =
     function
-    | Page.About -> Info.View.root
-    | Page.Counter -> Counter.View.root model.counter (CounterMsg >> dispatch)
-    | Page.Home -> Home.View.root model.home (HomeMsg >> dispatch)
+    | Page.Game -> Game.View.root model.game (GameMsg >> dispatch)
 
   div
     []
@@ -52,14 +30,7 @@ let root model dispatch =
         [ ClassName "section" ]
         [ div
             [ ClassName "container" ]
-            [ div
-                [ ClassName "columns" ]
-                [ div
-                    [ ClassName "column is-3" ]
-                    [ menu model.currentPage ]
-                  div
-                    [ ClassName "column" ]
-                    [ pageHtml model.currentPage ] ] ] ] ]
+            [ pageHtml model.currentPage ] ] ]
 
 open Elmish.React
 open Elmish.Debug

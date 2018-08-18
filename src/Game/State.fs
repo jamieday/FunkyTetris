@@ -1,4 +1,4 @@
-module Home.State
+module Game.State
 
 open Elmish
 open Types
@@ -6,9 +6,9 @@ open Fable.Core
 open System
 open Fable.PowerPack
 open Fable
-open Home.Types.Game
-open Home.Types.Tetromino
-open Home.Types.Board
+open Game.Types.Game
+open Game.Types.Tetromino
+open Game.Types.Board
 open FSExtend
 
 let initBoard () =

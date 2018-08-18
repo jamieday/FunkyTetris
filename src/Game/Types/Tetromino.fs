@@ -1,6 +1,6 @@
-module Home.Types.Tetromino
+module Game.Types.Tetromino
 
-open Home.Types.Board
+open Game.Types.Board
 
 type Tetromino =
   | I
