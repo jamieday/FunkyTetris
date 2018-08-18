@@ -14,7 +14,7 @@ type ActivePiece =
 
 type GameState = { PlacedBoard: Board
                    ActivePiece: ActivePiece
-                   QueuedPieces: Tetromino seq
+                   QueuedPieces: Tetromino list
                    TickFrequency: float<ms> }
 
 type Spin = Clockwise | CounterClockwise

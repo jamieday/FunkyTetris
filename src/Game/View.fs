@@ -23,7 +23,7 @@ let cellElm pos (model: Cell option) =
   let elmClass = 
     (match model with
     | Some cell -> toCellClass cell
-    | None -> "empty") |> sprintf "board-cell %s"
+    | None -> "empty") |> sprintf "cell %s"
 
   div [ Data ("col", pos.X)
         ClassName elmClass ] [ ]
@@ -35,11 +35,11 @@ let boardElm (model: Board) =
       |> Seq.sortBy (fun (pos, _) -> pos.Y, pos.X)
       |> Seq.groupBy (fun (pos, _) -> pos.Y)
 
-  div [ ClassName "board" ]
+  div [ ClassName "board main" ]
       (rows 
         |> Seq.map (fun (row, cols) ->
                 div [ Data ("row", row)
-                      ClassName "board-row" ]
+                      ClassName "row" ]
                     ( cols
                         |> Seq.map (fun (pos, cell) -> cellElm pos cell)
                         |> List.ofSeq )
@@ -64,12 +64,52 @@ let applyToBoard board (piece: BoardPiece) =
         | _ -> acc.Add (activeCellPosition, Some cell)
       ) board
 
+let queuedElm queued =
+  let queuedPieceElm (tetro: Tetromino) =
+    let structure = 
+      Tetromino.structure Rotation.Up tetro
+      |> Seq.map ((+) { X=2; Y=2 })
+      |> Set.ofSeq
+
+    let miniBoard =
+      List.init 6
+        (fun y ->
+          div [ ClassName "row" ]
+              (List.init 6
+                (fun x ->
+                  let cellType =
+                    if structure |> Set.contains { X=x; Y=y } then
+                      let { Color=color } = (tetro |> toMeta) in Fragment color |> toCellClass
+                    else
+                      "empty"                
+                  div [ ClassName ("cell " + cellType) ] [ ])))
+
+    div [ ClassName "board queued" ]
+        miniBoard
+       
+  div [ ClassName "queued" ]
+      (List.foldBack
+          (fun tetro acc ->
+            let queuedPieceRendered = tetro |> queuedPieceElm
+            queuedPieceRendered::
+              match acc with
+              | _::_ -> hr [ ]::acc
+              | [] -> [])
+          queued [ ])
+
 let root (model: Model) _dispatch =
-  model.ActivePiece |> TetroPiece 
-    |> applyToBoard
-      ( 
-        (model.ActivePiece
-          |> State.droppedPlacement model.PlacedBoard)
-          |> GhostPiece
-          |> applyToBoard model.PlacedBoard )
-    |> boardElm
+  let boardRendered =
+    model.ActivePiece |> TetroPiece 
+      |> applyToBoard
+        ( 
+          (model.ActivePiece
+            |> State.droppedPlacement model.PlacedBoard)
+            |> GhostPiece
+            |> applyToBoard model.PlacedBoard )
+      |> boardElm
+
+  let queuedRendered = queuedElm model.QueuedPieces
+  
+  div [ ClassName "game" ] 
+      [ boardRendered
+        queuedRendered ]

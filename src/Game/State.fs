@@ -18,15 +18,22 @@ let initBoard () =
         yield { X=j; Y=i }, None
   } |> Map.ofSeq
 
-let inline randNullaryUnion<'t>() = 
+let inline randNullaryUnion<'t> (rand: Random) = 
   let cases = Reflection.FSharpType.GetUnionCases(typeof<'t>)
-  let index = System.Random().Next(cases.Length)
+  let index = rand.Next(cases.Length)
   let case = cases.[index]
   Reflection.FSharpValue.MakeUnion(case, [||]) :?> 't
 
-let nextPiece () =
-  let nextTetromino = randNullaryUnion<Tetromino>()
+let futurePieces =
+  let rand = System.Random() in Seq.initInfinite (fun _ -> randNullaryUnion<Tetromino> rand)
+
+let nextPiece queued =
+  let (nextTetromino, queued) =
+    match queued with
+    | x::xs -> x, (futurePieces |> Seq.take 1 |> Seq.toList) |> List.append xs
+    | [] -> futurePieces |> Seq.take 1 |> Seq.exactlyOne, futurePieces |> Seq.take 5 |> Seq.toList
   { Tetromino = nextTetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up; LastDrop = DateTime.Now.Ticks }
+  , queued
 
 module FPWindow =
   [<Emit("window.setTimeout($1, $0)")>]
@@ -150,16 +157,16 @@ let update msg model : Model * Cmd<Msg> =
                   model.ActivePiece
                   |> applyToBoard model.PlacedBoard
                   |> clearLines
-                let activePiece' = nextPiece ()
-                { model with PlacedBoard = board'; ActivePiece = activePiece' }
+                let activePiece', queued' = nextPiece model.QueuedPieces
+                { model with PlacedBoard = board'; ActivePiece = activePiece'; QueuedPieces = queued' }
 
           model', []
       | HardDrop ->
           let model' =
             let droppedPiece = model.ActivePiece |> droppedPlacement model.PlacedBoard
             let board' = droppedPiece |> applyToBoard model.PlacedBoard |> clearLines
-            let activePiece' = nextPiece ()
-            { model with PlacedBoard = board'; ActivePiece = activePiece' }
+            let activePiece', queued' = nextPiece model.QueuedPieces
+            { model with PlacedBoard = board'; ActivePiece = activePiece'; QueuedPieces = queued' }
 
           model', []
       | UpdatePosition pos ->
@@ -178,9 +185,10 @@ let update msg model : Model * Cmd<Msg> =
           model', []      
 
 let init () : Model * Cmd<Msg> =
+  let activePiece, queued = futurePieces |> Seq.take 5 |> Seq.toList |> nextPiece
   let gameState = { PlacedBoard     = initBoard ()
-                    ActivePiece     = nextPiece ()
-                    QueuedPieces    = [ Tetromino.L; Tetromino.J ]
+                    ActivePiece     = activePiece
+                    QueuedPieces    = queued
                     TickFrequency = 500.<ms> }
   gameState, [ fun dispatch -> dispatch Tick
                fun dispatch -> bindKeys dispatch ]
