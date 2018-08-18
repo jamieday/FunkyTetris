@@ -22,9 +22,9 @@ $black: #202020
   border-color: $black
 
 .board
-  display: flex;
-  flex-direction: column;
-  margin: auto;
+  display: flex
+  flex-direction: column
+  margin: auto
   width: 250px
   border-radius: 2px
   box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
@@ -34,9 +34,13 @@ $black: #202020
     height: 25px
     .board-cell
       flex: 1
+      $board-background: #424242
       &.empty
-        background-color: #E0E0E0
-        border: 1px solid #E0E0E0
+        background-color: $board-background
+        border: 1px solid $board-background
+      &.ghost
+        background-color: $board-background
+        border: 1px dashed gray
       &.cyan
         background-color: #00BCD4
         border: 1px solid #80DEEA

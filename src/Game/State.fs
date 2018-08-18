@@ -67,8 +67,15 @@ let handleTick (model: Model): Model * Cmd<Msg> =
   else
     model, subscriptions
 
+let rec droppedPlacement board piece =
+            let pos' = let { X=x; Y=y } = piece.Position in { X=x; Y=y+1 }
+            let piece' = { piece with Position = pos' }
+            if piece' |> validatePiece board 
+              then piece' |> droppedPlacement board
+              else piece
+
 let applyToBoard (board: Board) ({ Tetromino=tetromino; Rotation=rot; Position=pos }: ActivePiece) =
-  let cell = { Color = (Tetromino.toMeta tetromino).Color }
+  let cell = Fragment (Tetromino.toMeta tetromino).Color
   Tetromino.structure rot tetromino
   |> Seq.map ((+) pos)
   |> Seq.fold (fun (board: Board) pos -> board.Add (pos, Some cell)) board
@@ -148,16 +155,8 @@ let update msg model : Model * Cmd<Msg> =
 
           model', []
       | HardDrop ->
-          // TODO
-          let rec dropPiece piece =
-            let pos' = let { X=x; Y=y } = piece.Position in { X=x; Y=y+1 }
-            let piece' = { piece with Position = pos' }
-            if piece' |> validatePiece model.PlacedBoard 
-              then dropPiece piece'
-              else piece
-
           let model' =
-            let droppedPiece = dropPiece model.ActivePiece
+            let droppedPiece = model.ActivePiece |> droppedPlacement model.PlacedBoard
             let board' = droppedPiece |> applyToBoard model.PlacedBoard |> clearLines
             let activePiece' = nextPiece ()
             { model with PlacedBoard = board'; ActivePiece = activePiece' }
@@ -170,11 +169,7 @@ let update msg model : Model * Cmd<Msg> =
           let model' = if isValid then { model with ActivePiece = piece' } else model
           model', []
       | OffsetPosition offset ->
-          let piece' = { model.ActivePiece with Position = model.ActivePiece.Position + offset }
-          let isValid = piece' |> validatePiece model.PlacedBoard
-
-          let model' = if isValid then { model with ActivePiece = piece' } else model
-          model', []
+          model, [ fun dispatch -> UpdatePosition (model.ActivePiece.Position + offset) |> UpdateActivePiece |> dispatch ]
       | UpdateRotation spin ->
           let nextRot = model.ActivePiece.Rotation |> Spin.nextRot spin
           let piece' = { model.ActivePiece with Rotation = nextRot }

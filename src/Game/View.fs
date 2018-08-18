@@ -8,18 +8,21 @@ open Game.Types.Game
 open Game.Types.Tetromino
 
 let toCellClass = function
-  | Cyan -> "cyan"
-  | Blue -> "blue"
-  | Orange -> "orange"
-  | Yellow -> "yellow"
-  | Green -> "green"
-  | Purple -> "purple"
-  | Red -> "red"
+  | Fragment color ->
+    match color with
+    | Cyan -> "cyan"
+    | Blue -> "blue"
+    | Orange -> "orange"
+    | Yellow -> "yellow"
+    | Green -> "green"
+    | Purple -> "purple"
+    | Red -> "red"
+  | Ghost -> "ghost"  
 
 let cellElm pos (model: Cell option) =
   let elmClass = 
     (match model with
-    | Some cell -> toCellClass cell.Color
+    | Some cell -> toCellClass cell
     | None -> "empty") |> sprintf "board-cell %s"
 
   div [ Data ("col", pos.X)
@@ -43,17 +46,30 @@ let boardElm (model: Board) =
                     )
         |> List.ofSeq)
 
-let applyToBoard board activePiece =
-  let activeStructure = Tetromino.structure activePiece.Rotation activePiece.Tetromino
+type BoardPiece =
+  | TetroPiece of ActivePiece
+  | GhostPiece of ActivePiece
+
+let applyToBoard board (piece: BoardPiece) =
+  let (pos, rot, tetro, cell) =
+    match piece with
+    | TetroPiece { Position=pos; Rotation=rot; Tetromino=tetro } -> (pos, rot, tetro, Fragment (Tetromino.toMeta tetro).Color)
+    | GhostPiece { Position=pos; Rotation=rot; Tetromino=tetro } -> (pos, rot, tetro, Ghost)
+  let activeStructure = Tetromino.structure rot tetro
   activeStructure
     |> Seq.fold (fun (acc: Board) offset ->
-        let activeCellPosition = activePiece.Position + offset
+        let activeCellPosition = pos + offset
         match activeCellPosition with
         | {X=x; Y=y} when x < 0 || y < 0 -> acc
-        | _ -> acc.Add (activeCellPosition, Some { Color = (Tetromino.toMeta activePiece.Tetromino).Color })
+        | _ -> acc.Add (activeCellPosition, Some cell)
       ) board
 
 let root (model: Model) _dispatch =
-  model.ActivePiece
-    |> applyToBoard model.PlacedBoard
+  model.ActivePiece |> TetroPiece 
+    |> applyToBoard
+      ( 
+        (model.ActivePiece
+          |> State.droppedPlacement model.PlacedBoard)
+          |> GhostPiece
+          |> applyToBoard model.PlacedBoard )
     |> boardElm

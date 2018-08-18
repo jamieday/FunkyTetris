@@ -9,7 +9,9 @@ type Color =
   | Purple
   | Red
 
-type Cell = { Color: Color }
+type Cell =
+  | Fragment of Color
+  | Ghost
 
 type Position = { X: int; Y: int }
 type Position with
