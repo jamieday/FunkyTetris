@@ -9,12 +9,16 @@ type ActivePiece =
     Rotation: Rotation
     LastDrop: int64 }
 
+type HoldPiece =
+  | Locked of Tetromino
+  | Unlocked of Tetromino option
 
 [<Measure>] type ms
 
 type GameState = { PlacedBoard: Board
                    ActivePiece: ActivePiece
                    QueuedPieces: Tetromino list
+                   HoldPiece: HoldPiece
                    TickFrequency: float<ms> }
 
 type Spin = Clockwise | CounterClockwise
@@ -37,6 +41,7 @@ module Spin =
 type ActivePieceMsg =
   | Drop
   | HardDrop
+  | Hold
   | UpdatePosition of Position
   | OffsetPosition of Position
   | UpdateRotation of Spin

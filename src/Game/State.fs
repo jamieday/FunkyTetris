@@ -27,13 +27,16 @@ let inline randNullaryUnion<'t> (rand: Random) =
 let futurePieces =
   let rand = System.Random() in Seq.initInfinite (fun _ -> randNullaryUnion<Tetromino> rand)
 
+module ActivePiece =
+  let init tetromino =
+    { Tetromino = tetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up; LastDrop = DateTime.Now.Ticks }
+
 let nextPiece queued =
   let (nextTetromino, queued) =
     match queued with
     | x::xs -> x, (futurePieces |> Seq.take 1 |> Seq.toList) |> List.append xs
     | [] -> futurePieces |> Seq.take 1 |> Seq.exactlyOne, futurePieces |> Seq.take 5 |> Seq.toList
-  { Tetromino = nextTetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up; LastDrop = DateTime.Now.Ticks }
-  , queued
+  ActivePiece.init nextTetromino, queued
 
 module FPWindow =
   [<Emit("window.setTimeout($1, $0)")>]
@@ -43,6 +46,7 @@ let bindKeys (dispatch: Dispatch<Msg>) =
   Fable.Import.Browser.document.addEventListener_keydown (fun evt ->
     let msg = match evt.keyCode with
               | 32. -> HardDrop |> Some // Spacebar
+              | Keyboard.Codes.c -> Hold |> Some
               | Keyboard.Codes.up_arrow -> UpdateRotation Clockwise |> Some
               | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> Some
               | Keyboard.Codes.down_arrow -> Drop |> Some
@@ -158,7 +162,11 @@ let update msg model : Model * Cmd<Msg> =
                   |> applyToBoard model.PlacedBoard
                   |> clearLines
                 let activePiece', queued' = nextPiece model.QueuedPieces
-                { model with PlacedBoard = board'; ActivePiece = activePiece'; QueuedPieces = queued' }
+                let holdPiece' =
+                  match model.HoldPiece with
+                  | Locked p -> Some p |> Unlocked
+                  | Unlocked _ -> model.HoldPiece
+                { model with PlacedBoard = board'; ActivePiece = activePiece'; QueuedPieces = queued'; HoldPiece = holdPiece' }
 
           model', []
       | HardDrop ->
@@ -166,8 +174,31 @@ let update msg model : Model * Cmd<Msg> =
             let droppedPiece = model.ActivePiece |> droppedPlacement model.PlacedBoard
             let board' = droppedPiece |> applyToBoard model.PlacedBoard |> clearLines
             let activePiece', queued' = nextPiece model.QueuedPieces
-            { model with PlacedBoard = board'; ActivePiece = activePiece'; QueuedPieces = queued' }
+            // TODO remove duplication
+            let holdPiece' =
+              match model.HoldPiece with
+              | Locked p -> Some p |> Unlocked
+              | Unlocked _ -> model.HoldPiece
+            { model with PlacedBoard = board'; ActivePiece = activePiece'; QueuedPieces = queued'; HoldPiece = holdPiece' }
 
+          model', []
+      | Hold ->
+          let model' = 
+            match model.HoldPiece with
+            | Locked _ -> model
+            | Unlocked holdPiece ->
+              match holdPiece with
+              | Some tetro ->
+                  let activePiece' = ActivePiece.init tetro
+                  { model with
+                      ActivePiece = activePiece'
+                      HoldPiece = Locked model.ActivePiece.Tetromino }
+              | None ->
+                  let (activePiece', queued') = nextPiece model.QueuedPieces
+                  { model with
+                      ActivePiece = activePiece'
+                      QueuedPieces = queued'
+                      HoldPiece = Locked model.ActivePiece.Tetromino }
           model', []
       | UpdatePosition pos ->
           let piece' = { model.ActivePiece with Position = pos }
@@ -189,6 +220,7 @@ let init () : Model * Cmd<Msg> =
   let gameState = { PlacedBoard     = initBoard ()
                     ActivePiece     = activePiece
                     QueuedPieces    = queued
-                    TickFrequency = 500.<ms> }
+                    HoldPiece       = Unlocked None
+                    TickFrequency   = 500.<ms> }
   gameState, [ fun dispatch -> dispatch Tick
                fun dispatch -> bindKeys dispatch ]

@@ -64,33 +64,45 @@ let applyToBoard board (piece: BoardPiece) =
         | _ -> acc.Add (activeCellPosition, Some cell)
       ) board
 
-let queuedElm queued =
-  let queuedPieceElm (tetro: Tetromino) =
+let miniBoard boardClass (tetroOpt: Tetromino option) =
+  let body =
     let structure = 
-      Tetromino.structure Rotation.Up tetro
-      |> Seq.map ((+) { X=2; Y=2 })
-      |> Set.ofSeq
+      match tetroOpt with
+      | Some tetro -> 
+          tetro
+          |> Tetromino.structure Rotation.Up
+          |> Seq.map ((+) { X=2; Y=2 })
+          |> Set.ofSeq
+      | None -> Set.empty        
 
-    let miniBoard =
-      List.init 6
-        (fun y ->
-          div [ ClassName "row" ]
-              (List.init 6
-                (fun x ->
-                  let cellType =
-                    if structure |> Set.contains { X=x; Y=y } then
+    List.init 6
+      (fun y ->
+        div [ ClassName "row" ]
+            (List.init 6
+              (fun x ->
+                let cellType =
+                  let hasCell = structure |> Set.contains { X=x; Y=y }
+                  match (tetroOpt, hasCell) with
+                  | (Some tetro, true) ->
                       let { Color=color } = (tetro |> toMeta) in Fragment color |> toCellClass
-                    else
-                      "empty"                
-                  div [ ClassName ("cell " + cellType) ] [ ])))
+                  | _ -> "empty"                    
+                div [ ClassName ("cell " + cellType) ] [ ])))
+  div [ ClassName (sprintf "board %s" boardClass) ]
+      body
 
-    div [ ClassName "board queued" ]
-        miniBoard
-       
+let holdElm holdPiece =
+  div [ ClassName "hold" ]
+      [ (let tetroOpt = 
+          match holdPiece with
+          | Locked tetro -> Some tetro
+          | Unlocked tetroOpt -> tetroOpt
+        tetroOpt |> miniBoard "hold") ]
+
+let queuedElm queued =
   div [ ClassName "queued" ]
       (List.foldBack
           (fun tetro acc ->
-            let queuedPieceRendered = tetro |> queuedPieceElm
+            let queuedPieceRendered = tetro |> Some |> miniBoard "queued"
             queuedPieceRendered::
               match acc with
               | _::_ -> hr [ ]::acc
@@ -98,6 +110,8 @@ let queuedElm queued =
           queued [ ])
 
 let root (model: Model) _dispatch =
+  let holdRendered = holdElm model.HoldPiece
+
   let boardRendered =
     model.ActivePiece |> TetroPiece 
       |> applyToBoard
@@ -111,5 +125,6 @@ let root (model: Model) _dispatch =
   let queuedRendered = queuedElm model.QueuedPieces
   
   div [ ClassName "game" ] 
-      [ boardRendered
+      [ holdRendered
+        boardRendered
         queuedRendered ]
