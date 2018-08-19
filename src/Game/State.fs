@@ -48,6 +48,7 @@ let bindKeys (dispatch: Dispatch<Msg>) =
               | 32. -> HardDrop |> Some // Spacebar
               | Keyboard.Codes.c -> Hold |> Some
               | Keyboard.Codes.up_arrow -> UpdateRotation Clockwise |> Some
+              | Keyboard.Codes.z -> UpdateRotation CounterClockwise |> Some
               | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> Some
               | Keyboard.Codes.down_arrow -> Drop |> Some
               | Keyboard.Codes.left_arrow -> OffsetPosition { X = -1; Y = 0 } |> Some
