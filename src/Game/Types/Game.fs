@@ -6,8 +6,7 @@ open Game.Types.Tetromino
 type ActivePiece = 
   { Tetromino: Tetromino
     Position: Position
-    Rotation: Rotation
-    LastDrop: int64 }
+    Rotation: Rotation }
 
 type HoldPiece =
   | Locked of Tetromino
@@ -15,11 +14,16 @@ type HoldPiece =
 
 [<Measure>] type ms
 
-type GameState = { PlacedBoard: Board
+type ClockState =
+  { Ticks: int64
+    DropFrequency: int64 }
+
+type GameState = { Paused: bool
+                   PlacedBoard: Board
                    ActivePiece: ActivePiece
-                   QueuedPieces: Tetromino list
                    HoldPiece: HoldPiece
-                   TickFrequency: float<ms> }
+                   QueuedPieces: Tetromino list
+                   Clock: ClockState }
 
 type Spin = Clockwise | CounterClockwise
 

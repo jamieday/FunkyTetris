@@ -6,5 +6,5 @@ type Model = GameState
 
 type Msg =
   | Tick
-  | UpdateBoard of Game.Types.Board.Board
+  | TogglePaused
   | UpdateActivePiece of Game.Types.Game.ActivePieceMsg

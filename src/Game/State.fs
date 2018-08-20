@@ -29,7 +29,7 @@ let futurePieces =
 
 module ActivePiece =
   let init tetromino =
-    { Tetromino = tetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up; LastDrop = DateTime.Now.Ticks }
+    { Tetromino = tetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up }
 
 let nextPiece queued =
   let (nextTetromino, queued) =
@@ -40,21 +40,24 @@ let nextPiece queued =
 
 module FPWindow =
   [<Emit("window.setTimeout($1, $0)")>]
-  let setTimeout (ms: float<ms>) (f: unit -> unit) = Exceptions.jsNative
+  let setTimeout (ms: float<ms>) (f: unit -> unit) = jsNative
 
 let bindKeys (dispatch: Dispatch<Msg>) =
   Fable.Import.Browser.document.addEventListener_keydown (fun evt ->
     let msg = match evt.keyCode with
-              | 32. -> HardDrop |> Some // Spacebar
-              | Keyboard.Codes.c -> Hold |> Some
-              | Keyboard.Codes.up_arrow -> UpdateRotation Clockwise |> Some
-              | Keyboard.Codes.z -> UpdateRotation CounterClockwise |> Some
-              | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> Some
-              | Keyboard.Codes.down_arrow -> Drop |> Some
-              | Keyboard.Codes.left_arrow -> OffsetPosition { X = -1; Y = 0 } |> Some
+              | Keyboard.Codes.p -> TogglePaused |> Some
+              | Keyboard.Codes.escape -> TogglePaused |> Some
+
+              | 32. -> HardDrop |> UpdateActivePiece |> Some // Spacebar
+              | Keyboard.Codes.c -> Hold |> UpdateActivePiece |> Some
+              | Keyboard.Codes.up_arrow -> UpdateRotation Clockwise |> UpdateActivePiece |> Some
+              | Keyboard.Codes.z -> UpdateRotation CounterClockwise |> UpdateActivePiece |> Some
+              | Keyboard.Codes.right_arrow -> OffsetPosition { X = 1; Y = 0 } |> UpdateActivePiece |> Some
+              | Keyboard.Codes.down_arrow -> Drop |> UpdateActivePiece |> Some
+              | Keyboard.Codes.left_arrow -> OffsetPosition { X = -1; Y = 0 } |> UpdateActivePiece |> Some
               | _ -> None
     match msg with
-    | Some msg -> UpdateActivePiece msg |> dispatch
+    | Some msg -> msg |> dispatch
     | None -> ()
     null)
 
@@ -70,14 +73,23 @@ let validatePiece (board: Board) { Tetromino=tetro; Rotation=rot; Position=pos }
   not invalidPos 
 
 let handleTick (model: Model): Model * Cmd<Msg> =
-  // Optimization so we don't spam ticks
-  let subscriptions = [ (fun dispatch -> (fun () -> dispatch Tick) |> FPWindow.setTimeout (float model.TickFrequency * 0.1<ms>)) ]
+  let tickFrequency = 25<ms>
 
-  let now = DateTime.Now.Ticks
-  if now - model.ActivePiece.LastDrop >= TimeSpan.TicksPerMillisecond * int64 model.TickFrequency then
-    { model with ActivePiece = { model.ActivePiece with LastDrop = now } }, (fun dispatch -> dispatch (UpdateActivePiece Drop))::subscriptions
-  else
-    model, subscriptions
+  // Optimization so we don't spam ticks
+  let subs = [ (fun dispatch -> (fun () -> dispatch Tick) |> FPWindow.setTimeout (float tickFrequency * 0.1<ms>)) ]
+
+  match model.Paused with
+  | true -> model, subs
+  | false ->
+      let { Ticks=ticks; DropFrequency=dropFreq } = model.Clock
+      let ticks' = ticks + 1L
+      let model' = { model with Clock = { model.Clock with Ticks = ticks' } }
+
+      let dropSubOpt =
+        match ticks' % dropFreq with
+        | 0L -> Some (fun dispatch -> dispatch (UpdateActivePiece Drop))
+        | _ -> None
+      model', match dropSubOpt with Some dropSub -> dropSub::subs | None -> subs
 
 let rec droppedPlacement board piece =
             let pos' = let { X=x; Y=y } = piece.Position in { X=x; Y=y+1 }
@@ -138,9 +150,9 @@ let clearLines (board: Board) =
   
 let update msg model : Model * Cmd<Msg> =
   match msg with
-  | UpdateBoard board ->
-      model, []
   | Tick -> handleTick model
+  | TogglePaused ->
+      { model with Paused = not model.Paused }, []
   | UpdateActivePiece apMsg -> 
       match apMsg with
       | Drop ->
@@ -218,10 +230,12 @@ let update msg model : Model * Cmd<Msg> =
 
 let init () : Model * Cmd<Msg> =
   let activePiece, queued = futurePieces |> Seq.take 5 |> Seq.toList |> nextPiece
-  let gameState = { PlacedBoard     = initBoard ()
+  let gameState = { Paused          = false
+                    PlacedBoard     = initBoard ()
                     ActivePiece     = activePiece
                     QueuedPieces    = queued
                     HoldPiece       = Unlocked None
-                    TickFrequency   = 500.<ms> }
+                    Clock           = { Ticks = 0L
+                                        DropFrequency = 75L } }
   gameState, [ fun dispatch -> dispatch Tick
                fun dispatch -> bindKeys dispatch ]
