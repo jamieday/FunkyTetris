@@ -32,8 +32,13 @@ let root =
         [ div
             [ ClassName "nav-left" ]
             [ h1
-                [ ClassName "nav-item is-brand title is-4" ]
+                [ ClassName "nav-item title is-4 is-brand" ]
                 [ str "Funky Tetris" ] ]
+          div
+            [ ClassName "nav-center" ]
+            [ span
+                [ ClassName "nav-item" ]
+                [ str "Created with 😐, made purely in F#" ] ]
           div
             [ ClassName "nav-right" ]
             [ navButtons ] ]
