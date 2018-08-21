@@ -153,7 +153,7 @@ let update msg model : Model * Cmd<Msg> =
   | Tick -> handleTick model
   | TogglePaused ->
       { model with Paused = not model.Paused }, []
-  | UpdateActivePiece apMsg when model.Paused ->
+  | UpdateActivePiece apMsg when not model.Paused ->
       match apMsg with
       | Drop ->
           if model.ActivePiece |> validatePiece model.PlacedBoard |> not then

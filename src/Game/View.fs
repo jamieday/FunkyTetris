@@ -91,13 +91,33 @@ let miniBoard boardClass (tetroOpt: Tetromino option) =
       body
 
 let holdElm holdPiece =
-  div [ ClassName "hold" ]
-      [ (let tetroOpt = 
-          match holdPiece with
-          | Locked tetro -> Some tetro
-          | Unlocked tetroOpt -> tetroOpt
-        tetroOpt |> miniBoard "hold") ]
+  let tetroOpt = 
+    match holdPiece with
+    | Locked tetro -> Some tetro
+    | Unlocked tetroOpt -> tetroOpt
+  tetroOpt |> miniBoard "hold"
 
+let controlsElm =
+  let controls =
+    [ "R",      "restart"
+      "Esc/P",  "pause"
+      "Up",     "rotate CW"
+      "Right",  "move right"
+      "Left",   "move left"
+      "Down",   "move down"
+      "Space",  "hard drop"
+      "C",      "hold"
+      "Z",      "rotate CCW" ]
+
+  ul [ ClassName "board info"
+       Style [ MarginTop "15px" ] ]
+     (controls
+      |> List.fold
+          (fun acc (label, desc) ->
+            li [ ] [ sprintf "%s - " label |> str
+                     span [ ClassName "description" ] [ str desc ] ]::acc)
+          [ ])
+        
 let queuedElm queued =
   div [ ClassName "queued" ]
       (List.foldBack
@@ -110,9 +130,12 @@ let queuedElm queued =
           queued [ ])
 
 let root (model: Model) _dispatch =
-  let holdRendered = holdElm model.HoldPiece
+  let infoColRendered =
+    div [ ClassName "info" ]
+        [ holdElm model.HoldPiece
+          controlsElm ]
 
-  let boardRendered =
+  let boardColRendered =
     model.ActivePiece |> TetroPiece 
       |> applyToBoard
         ( 
@@ -122,9 +145,11 @@ let root (model: Model) _dispatch =
             |> applyToBoard model.PlacedBoard )
       |> boardElm
 
-  let queuedRendered = queuedElm model.QueuedPieces
+  let queuedColRendered = queuedElm model.QueuedPieces
   
-  div [ ClassName "game" ] 
-      [ holdRendered
-        boardRendered
-        queuedRendered ]
+  let gameClass = sprintf "game %s" (if model.Paused then "paused" else "active")
+
+  div [ ClassName gameClass ] 
+      [ infoColRendered
+        boardColRendered
+        queuedColRendered ]

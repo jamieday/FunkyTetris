@@ -31,16 +31,25 @@ html
   &.paused
     filter: blur(2px)
 
+.info
+  display: flex
+  flex-direction: column
+  align-items: flex-end
+
+$board-background: #424242
+
 .board
   display: flex
   flex-direction: column
   border-radius: 2px
   box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
+  background-color: $board-background
 
   &.main
     margin: 0 25px
 
   &.hold
+    width: 90px
     .cell
       width: 15px
       height: 15px
@@ -50,6 +59,14 @@ html
       width: 10px
       height: 10px
 
+  &.info
+
+    color: #e0e0e0
+    padding: 15px
+
+    .description
+      color: #9e9e9e
+
 .row
   flex: 1
   display: flex
@@ -58,7 +75,7 @@ html
   flex: 1
   width: 25px
   height: 25px
-  $board-background: #424242
+  
   &.empty
     background-color: $board-background
     border: 1px solid $board-background
