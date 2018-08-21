@@ -38,6 +38,16 @@ let nextPiece queued =
     | [] -> futurePieces |> Seq.take 1 |> Seq.exactlyOne, futurePieces |> Seq.take 5 |> Seq.toList
   ActivePiece.init nextTetromino, queued
 
+let initGameState =
+  let activePiece, queued = futurePieces |> Seq.take 5 |> Seq.toList |> nextPiece
+  { Paused          = false
+    PlacedBoard     = initBoard ()
+    ActivePiece     = activePiece
+    QueuedPieces    = queued
+    HoldPiece       = Unlocked None
+    Clock           = { Ticks = 0L
+                        DropFrequency = 75L } }
+
 module FPWindow =
   [<Emit("window.setTimeout($1, $0)")>]
   let setTimeout (ms: float<ms>) (f: unit -> unit) = jsNative
@@ -47,6 +57,7 @@ let bindKeys (dispatch: Dispatch<Msg>) =
     let msg = match evt.keyCode with
               | Keyboard.Codes.p -> TogglePaused |> Some
               | Keyboard.Codes.escape -> TogglePaused |> Some
+              | Keyboard.Codes.r -> TriggerRestart |> Some
 
               | 32. -> HardDrop |> UpdateActivePiece |> Some // Spacebar
               | Keyboard.Codes.c -> Hold |> UpdateActivePiece |> Some
@@ -153,6 +164,8 @@ let update msg model : Model * Cmd<Msg> =
   | Tick -> handleTick model
   | TogglePaused ->
       { model with Paused = not model.Paused }, []
+  | TriggerRestart ->
+      initGameState, []    
   | UpdateActivePiece apMsg when not model.Paused ->
       match apMsg with
       | Drop ->
@@ -228,14 +241,8 @@ let update msg model : Model * Cmd<Msg> =
           let model' = if isValid then { model with ActivePiece = piece' } else model
           model', []
     | _ -> model, []        
+
 let init () : Model * Cmd<Msg> =
-  let activePiece, queued = futurePieces |> Seq.take 5 |> Seq.toList |> nextPiece
-  let gameState = { Paused          = false
-                    PlacedBoard     = initBoard ()
-                    ActivePiece     = activePiece
-                    QueuedPieces    = queued
-                    HoldPiece       = Unlocked None
-                    Clock           = { Ticks = 0L
-                                        DropFrequency = 75L } }
-  gameState, [ fun dispatch -> dispatch Tick
-               fun dispatch -> bindKeys dispatch ]
+  initGameState,
+  [ fun dispatch -> dispatch Tick
+    fun dispatch -> bindKeys dispatch ]

@@ -7,4 +7,5 @@ type Model = GameState
 type Msg =
   | Tick
   | TogglePaused
+  | TriggerRestart
   | UpdateActivePiece of Game.Types.Game.ActivePieceMsg
