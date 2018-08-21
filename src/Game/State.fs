@@ -57,7 +57,7 @@ let bindKeys (dispatch: Dispatch<Msg>) =
               | Keyboard.Codes.left_arrow -> OffsetPosition { X = -1; Y = 0 } |> UpdateActivePiece |> Some
               | _ -> None
     match msg with
-    | Some msg -> msg |> dispatch
+    | Some msg -> dispatch msg
     | None -> ()
     null)
 
@@ -153,7 +153,7 @@ let update msg model : Model * Cmd<Msg> =
   | Tick -> handleTick model
   | TogglePaused ->
       { model with Paused = not model.Paused }, []
-  | UpdateActivePiece apMsg -> 
+  | UpdateActivePiece apMsg when model.Paused ->
       match apMsg with
       | Drop ->
           if model.ActivePiece |> validatePiece model.PlacedBoard |> not then
@@ -220,14 +220,14 @@ let update msg model : Model * Cmd<Msg> =
           let model' = if isValid then { model with ActivePiece = piece' } else model
           model', []
       | OffsetPosition offset ->
-          model, [ fun dispatch -> UpdatePosition (model.ActivePiece.Position + offset) |> UpdateActivePiece |> dispatch ]
+          model, UpdatePosition (model.ActivePiece.Position + offset) |> UpdateActivePiece |> Cmd.ofMsg
       | UpdateRotation spin ->
           let nextRot = model.ActivePiece.Rotation |> Spin.nextRot spin
           let piece' = { model.ActivePiece with Rotation = nextRot }
           let isValid = piece' |> validatePiece model.PlacedBoard
           let model' = if isValid then { model with ActivePiece = piece' } else model
-          model', []      
-
+          model', []
+    | _ -> model, []        
 let init () : Model * Cmd<Msg> =
   let activePiece, queued = futurePieces |> Seq.take 5 |> Seq.toList |> nextPiece
   let gameState = { Paused          = false
