@@ -1,4 +1,4 @@
-module Game.Types
+module Game.Types.Model
 
 open Game.Types.Game
 

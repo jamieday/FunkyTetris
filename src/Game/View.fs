@@ -2,10 +2,10 @@ module Game.View
 
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
-open Types
-open Game.Types.Board
-open Game.Types.Game
-open Game.Types.Tetromino
+open Types.Board
+open Types.Game
+open Types.Tetromino
+open Types.Model
 
 let toCellClass = function
   | Fragment color ->
@@ -53,9 +53,9 @@ type BoardPiece =
 let applyToBoard board (piece: BoardPiece) =
   let (pos, rot, tetro, cell) =
     match piece with
-    | TetroPiece { Position=pos; Rotation=rot; Tetromino=tetro } -> (pos, rot, tetro, Fragment (Tetromino.toMeta tetro).Color)
+    | TetroPiece { Position=pos; Rotation=rot; Tetromino=tetro } -> (pos, rot, tetro, Fragment (toMeta tetro).Color)
     | GhostPiece { Position=pos; Rotation=rot; Tetromino=tetro } -> (pos, rot, tetro, Ghost)
-  let activeStructure = Tetromino.structure rot tetro
+  let activeStructure = structure rot tetro
   activeStructure
     |> Seq.fold (fun (acc: Board) offset ->
         let activeCellPosition = pos + offset
@@ -70,7 +70,7 @@ let miniBoard boardClass (tetroOpt: Tetromino option) =
       match tetroOpt with
       | Some tetro -> 
           tetro
-          |> Tetromino.structure Rotation.Up
+          |> structure Rotation.Up
           |> Seq.map ((+) { X=2; Y=2 })
           |> Set.ofSeq
       | None -> Set.empty        

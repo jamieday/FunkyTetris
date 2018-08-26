@@ -1,15 +1,14 @@
 module Game.State
 
 open Elmish
-open Types
 open Fable.Core
 open System
 open Fable.PowerPack
 open Fable
-open Game.Types.Game
-open Game.Types.Tetromino
-open Game.Types.Board
-open FSExtend
+open Types.Game
+open Types.Tetromino
+open Types.Board
+open Types.Model
 
 let initBoard () =
   seq {
@@ -79,7 +78,7 @@ let validatePiece (board: Board) { Tetromino=tetro; Rotation=rot; Position=pos }
       |> board.TryFind
       |> Option.map (fun cellOpt -> cellOpt.IsNone)
       |> Option.defaultValue false
-  let tetroStructure = Tetromino.structure rot tetro
+  let tetroStructure = structure rot tetro
   let invalidPos = tetroStructure |> Seq.map ((+) pos) |> Seq.map posVacant |> Seq.contains false
   not invalidPos 
 
@@ -110,8 +109,8 @@ let rec droppedPlacement board piece =
               else piece
 
 let applyToBoard (board: Board) ({ Tetromino=tetromino; Rotation=rot; Position=pos }: ActivePiece) =
-  let cell = Fragment (Tetromino.toMeta tetromino).Color
-  Tetromino.structure rot tetromino
+  let cell = Fragment (toMeta tetromino).Color
+  structure rot tetromino
   |> Seq.map ((+) pos)
   |> Seq.fold (fun (board: Board) pos -> board.Add (pos, Some cell)) board
 
