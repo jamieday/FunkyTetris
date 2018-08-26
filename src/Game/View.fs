@@ -64,7 +64,10 @@ let applyToBoard board (piece: BoardPiece) =
         | _ -> acc.Add (activeCellPosition, Some cell)
       ) board
 
-let miniBoard boardClass (tetroOpt: Tetromino option) =
+module MiniBoard =
+  let size = 6
+
+let miniBoard boardClass cellSize (tetroOpt: Tetromino option) =
   let body =
     let structure = 
       match tetroOpt with
@@ -75,27 +78,28 @@ let miniBoard boardClass (tetroOpt: Tetromino option) =
           |> Set.ofSeq
       | None -> Set.empty        
 
-    List.init 6
+    List.init MiniBoard.size
       (fun y ->
         div [ ClassName "row" ]
-            (List.init 6
+            (List.init MiniBoard.size
               (fun x ->
                 let cellType =
                   let hasCell = structure |> Set.contains { X=x; Y=y }
                   match (tetroOpt, hasCell) with
                   | (Some tetro, true) ->
                       let { Color=color } = (tetro |> toMeta) in Fragment color |> toCellClass
-                  | _ -> "empty"                    
-                div [ ClassName ("cell " + cellType) ] [ ])))
+                  | _ -> "empty"
+                let sizePx = cellSize |> sprintf "%ipx"                
+                div [ Style [ Width sizePx; Height sizePx ]; ClassName ("cell " + cellType) ] [ ])))
   div [ ClassName (sprintf "board %s" boardClass) ]
-      body
+        body
 
 let holdElm holdPiece =
   let tetroOpt = 
     match holdPiece with
     | Locked tetro -> Some tetro
     | Unlocked tetroOpt -> tetroOpt
-  tetroOpt |> miniBoard "hold"
+  tetroOpt |> miniBoard "hold" 15
 
 let controlsElm =
   let controls =
@@ -117,12 +121,18 @@ let controlsElm =
             li [ ] [ sprintf "%s - " label |> str
                      span [ ClassName "description" ] [ str desc ] ]::acc)
           [ ])
+
+let creditsElm =
+  div [ ClassName "board info" ]
+      [ str "Developed by"
+        a [ Href "http://jamieday.ca" ]
+          [ str "Jamie Day" ] ]
         
 let queuedElm queued =
   div [ ClassName "queued" ]
       (List.foldBack
           (fun tetro acc ->
-            let queuedPieceRendered = tetro |> Some |> miniBoard "queued"
+            let queuedPieceRendered = tetro |> Some |> miniBoard "queued" 10
             queuedPieceRendered::
               match acc with
               | _::_ -> hr [ ]::acc
@@ -133,7 +143,8 @@ let root (model: Model) _dispatch =
   let infoColRendered =
     div [ ClassName "info" ]
         [ holdElm model.HoldPiece
-          controlsElm ]
+          controlsElm
+          creditsElm ]
 
   let boardColRendered =
     model.ActivePiece |> TetroPiece 

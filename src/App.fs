@@ -19,18 +19,14 @@ let root model dispatch =
     function
     | Page.Game -> Game.View.root model.game (GameMsg >> dispatch)
 
+
   div
-    []
+    [ ClassName "root-content" ]
     [ div
-        [ ClassName "navbar-bg" ]
-        [ div
-            [ ClassName "container" ]
-            [ Navbar.View.root ] ]
-      div
-        [ ClassName "section" ]
-        [ div
-            [ ClassName "container" ]
-            [ pageHtml model.currentPage ] ] ]
+        [ ClassName "header" ]
+        [ h1 [ ] [ str "Funky Tetris" ]
+          h2 [ ] [ str "Developed purely in F# with model-view-update architecture"] ]
+      pageHtml model.currentPage ]
 
 open Elmish.React
 open Elmish.Debug

@@ -1,7 +1,7 @@
 {
-  "name": "FunkyTetris",
+  "name": "funky-tetris",
   "version": "1.0.0",
-  "description": "Simple Fable App",
+  "description": "Tetris + Functional reactive programming",
   "scripts": {
     "build": "webpack -p",
     "start": "webpack-dev-server",

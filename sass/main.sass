@@ -5,6 +5,19 @@ $black: #202020
 
 @import '../node_modules/bulma/bulma'
 
+.root-content
+  display: flex
+  flex-direction: column
+  align-items: center
+  text-align: center
+
+.header
+  margin-bottom: 30px
+  color: #cecece
+  h1
+    font-size: 45px
+  h2
+    font-size: 21px
 .navbar-bg
   background-color: $black
   .nav
@@ -23,10 +36,12 @@ $black: #202020
 
 html
   overflow: hidden
+  background-color: #555
 
 .game
   display: flex
   justify-content: center
+  align-items: flex-start
 
   &.paused
     filter: blur(2px)
@@ -45,22 +60,14 @@ $board-background: #424242
   box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75)
   background-color: $board-background
 
+  a
+    color: #907aff
+
   &.main
     margin: 0 25px
 
-  &.hold
-    width: 90px
-    .cell
-      width: 15px
-      height: 15px
-
-  &.queued
-    .cell
-      width: 10px
-      height: 10px
-
   &.info
-
+    margin-top: 15px
     color: #e0e0e0
     padding: 15px
 
