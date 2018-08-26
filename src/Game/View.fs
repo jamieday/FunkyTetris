@@ -118,8 +118,8 @@ let controlsElm =
      (controls
       |> List.fold
           (fun acc (label, desc) ->
-            li [ ] [ sprintf "%s - " label |> str
-                     span [ ClassName "description" ] [ str desc ] ]::acc)
+            li [ ] [ span [ ClassName "pull-left" ] [ str label ]
+                     span [ ClassName "pull-right description" ] [ str desc ] ]::acc)
           [ ])
 
 let creditsElm =
