@@ -124,9 +124,10 @@ let controlsElm =
 
 let creditsElm =
   div [ ClassName "board info" ]
-      [ str "Developed by"
-        a [ Href "http://jamieday.ca" ]
-          [ str "Jamie Day" ] ]
+      [ a [ Href "https://github.com/jamieday/FunkyTetris" ]
+          [ str "View on GitHub" ]
+        a [ Style [ MarginTop "5px" ]; Href "http://jamieday.ca" ]
+          [ str "More stuff" ] ]
         
 let queuedElm queued =
   div [ ClassName "queued" ]

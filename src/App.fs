@@ -24,8 +24,8 @@ let root model dispatch =
     [ ClassName "root-content" ]
     [ div
         [ ClassName "header" ]
-        [ h1 [ ] [ str "Funky Tetris" ]
-          h2 [ ] [ str "Developed purely in F# with model-view-update architecture"] ]
+        [ h1 [ Style [ Display "inline-block" ] ] [ str "Funky Tetris" ]
+          h2 [ ClassName "lead text-muted" ] [ str "Developed in F# with Fable, Elmish, model-view-update architecture"] ]
       pageHtml model.currentPage ]
 
 open Elmish.React
