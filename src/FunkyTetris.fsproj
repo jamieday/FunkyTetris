@@ -3,7 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FSExtend.fs" />
     <Compile Include="Page.fs" />
     <Compile Include="Game/Types/Board.fs" />
     <Compile Include="Game/Types/Tetromino.fs" />
