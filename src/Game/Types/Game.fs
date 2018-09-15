@@ -22,6 +22,7 @@ type GameState = { Paused: bool
                    PlacedBoard: Board
                    ActivePiece: ActivePiece
                    HoldPiece: HoldPiece
+                   EligiblePieces: Set<Tetromino>
                    QueuedPieces: Tetromino list
                    Clock: ClockState }
 

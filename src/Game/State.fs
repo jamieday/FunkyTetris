@@ -2,7 +2,6 @@ module Game.State
 
 open Elmish
 open Fable.Core
-open System
 open Fable.PowerPack
 open Fable
 open Types.Game
@@ -17,31 +16,28 @@ let initBoard () =
         yield { X=j; Y=i }, None
   } |> Map.ofSeq
 
-let inline randNullaryUnion<'t> (rand: Random) = 
-  let cases = Reflection.FSharpType.GetUnionCases(typeof<'t>)
-  let index = rand.Next(cases.Length)
-  let case = cases.[index]
-  Reflection.FSharpValue.MakeUnion(case, [||]) :?> 't
-
-let futurePieces =
-  let rand = System.Random() in Seq.initInfinite (fun _ -> randNullaryUnion<Tetromino> rand)
+let rand = System.Random()
+let randTetromino (eligiblePieces: Set<Tetromino>) =
+  let piecesArr = eligiblePieces |> Set.toArray
+  piecesArr.[rand.Next <| Set.count eligiblePieces]
 
 module ActivePiece =
   let init tetromino =
     { Tetromino = tetromino; Position = { X = Board.width / 2 - 1; Y = 2 }; Rotation = Up }
 
-let nextPiece queued =
+let nextPiece eligiblePieces queued =
   let (nextTetromino, queued) =
     match queued with
-    | x::xs -> x, (futurePieces |> Seq.take 1 |> Seq.toList) |> List.append xs
-    | [] -> futurePieces |> Seq.take 1 |> Seq.exactlyOne, futurePieces |> Seq.take 5 |> Seq.toList
+    | x::xs -> x, List.append xs [ randTetromino eligiblePieces ]
+    | [] -> let xs = [ for _ in 0..5 -> randTetromino eligiblePieces ] in (List.head xs, List.tail xs)
   ActivePiece.init nextTetromino, queued
 
 let initGameState =
-  let activePiece, queued = futurePieces |> Seq.take 5 |> Seq.toList |> nextPiece
+  let activePiece, queued = nextPiece eligiblePieces []
   { Paused          = false
     PlacedBoard     = initBoard ()
     ActivePiece     = activePiece
+    EligiblePieces  = eligiblePieces
     QueuedPieces    = queued
     HoldPiece       = Unlocked None
     Clock           = { Ticks = 0L
@@ -57,6 +53,8 @@ let bindKeys (dispatch: Dispatch<Msg>) =
               | Keyboard.Codes.p -> TogglePaused |> Some
               | Keyboard.Codes.escape -> TogglePaused |> Some
               | Keyboard.Codes.r -> TriggerRestart |> Some
+
+              | Keyboard.Codes.l -> LambdaMode |> Some
 
               | 32. -> HardDrop |> UpdateActivePiece |> Some // Spacebar
               | Keyboard.Codes.c -> Hold |> UpdateActivePiece |> Some
@@ -165,6 +163,8 @@ let update msg model : Model * Cmd<Msg> =
       { model with Paused = not model.Paused }, []
   | TriggerRestart ->
       initGameState, []    
+  | LambdaMode ->
+      { model with EligiblePieces = model.EligiblePieces |> Set.add Λ }, []
   | UpdateActivePiece apMsg when not model.Paused ->
       match apMsg with
       | Drop ->
@@ -186,7 +186,7 @@ let update msg model : Model * Cmd<Msg> =
                   model.ActivePiece
                   |> applyToBoard model.PlacedBoard
                   |> clearLines
-                let activePiece', queued' = nextPiece model.QueuedPieces
+                let activePiece', queued' = nextPiece model.EligiblePieces model.QueuedPieces
                 let holdPiece' =
                   match model.HoldPiece with
                   | Locked p -> Some p |> Unlocked
@@ -198,7 +198,7 @@ let update msg model : Model * Cmd<Msg> =
           let model' =
             let droppedPiece = model.ActivePiece |> droppedPlacement model.PlacedBoard
             let board' = droppedPiece |> applyToBoard model.PlacedBoard |> clearLines
-            let activePiece', queued' = nextPiece model.QueuedPieces
+            let activePiece', queued' = nextPiece model.EligiblePieces model.QueuedPieces
             // TODO remove duplication
             let holdPiece' =
               match model.HoldPiece with
@@ -219,7 +219,7 @@ let update msg model : Model * Cmd<Msg> =
                       ActivePiece = activePiece'
                       HoldPiece = Locked model.ActivePiece.Tetromino }
               | None ->
-                  let (activePiece', queued') = nextPiece model.QueuedPieces
+                  let (activePiece', queued') = nextPiece model.EligiblePieces model.QueuedPieces
                   { model with
                       ActivePiece = activePiece'
                       QueuedPieces = queued'

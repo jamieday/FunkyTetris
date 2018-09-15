@@ -8,4 +8,5 @@ type Msg =
   | Tick
   | TogglePaused
   | TriggerRestart
+  | LambdaMode
   | UpdateActivePiece of Game.Types.Game.ActivePieceMsg

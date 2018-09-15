@@ -17,6 +17,7 @@ let toCellClass = function
     | Green -> "green"
     | Purple -> "purple"
     | Red -> "red"
+    | Gray -> "gray"
   | Ghost -> "ghost"  
 
 let cellElm pos (model: Cell option) =
@@ -101,9 +102,10 @@ let holdElm holdPiece =
     | Unlocked tetroOpt -> tetroOpt
   tetroOpt |> miniBoard "hold" 15
 
-let controlsElm =
+let controlsElm lambdaEnabled =
   let controls =
-    [ "R",      "restart"
+    [ "L",      if lambdaEnabled then "λ mode enabled" else "???"
+      "R",      "restart"
       "Esc/P",  "pause"
       "Up",     "rotate CW"
       "Right",  "move right"
@@ -118,8 +120,13 @@ let controlsElm =
      (controls
       |> List.fold
           (fun acc (label, desc) ->
-            li [ ] [ sprintf "%s - " label |> str
-                     span [ ClassName "description" ] [ str desc ] ]::acc)
+            let props: IHTMLProp list = 
+              if label = "L" then [ Style [ Color "#ff5252" ] ] else []
+            let propsDesc: IHTMLProp list = 
+              if label = "L" then [ Style [ Color "#ff5252" ] ] else [ ClassName "description" ]
+
+            li props [ sprintf "%s - " label |> str
+                       span propsDesc [ str desc ] ]::acc)
           [ ])
 
 let creditsElm =
@@ -144,7 +151,7 @@ let root (model: Model) _dispatch =
   let infoColRendered =
     div [ ClassName "info" ]
         [ holdElm model.HoldPiece
-          controlsElm
+          controlsElm (model.EligiblePieces |> Set.contains Λ)
           creditsElm ]
 
   let boardColRendered =

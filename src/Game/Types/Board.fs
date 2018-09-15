@@ -8,6 +8,7 @@ type Color =
   | Green
   | Purple
   | Red
+  | Gray
 
 type Cell =
   | Fragment of Color

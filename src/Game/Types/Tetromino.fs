@@ -10,6 +10,16 @@ type Tetromino =
   | T
   | J
   | O
+  | Λ
+
+let eligiblePieces =
+  [ Tetromino.I
+    Tetromino.L
+    Tetromino.Z
+    Tetromino.S
+    Tetromino.T
+    Tetromino.J
+    Tetromino.O ] |> Set.ofList
 
 type Rotation = Up | Right | Down | Left
 
@@ -23,6 +33,7 @@ let toMeta = function
   | S -> { Color = Color.Green }
   | T -> { Color = Color.Purple }
   | Z -> { Color = Color.Red }
+  | Λ -> { Color = Color.Gray }
 
 let structure (rot: Rotation) tetrimino =
   ( match tetrimino with
@@ -32,7 +43,8 @@ let structure (rot: Rotation) tetrimino =
     | O -> [ (0, 0); (0, 1); (1, 1); (1, 0) ]
     | S -> [ (1, 0); (0, 0); (0, 1); (-1, 1) ]
     | T -> [ (0, 0); (0, -1); (-1, 0); (1, 0) ]
-    | Z -> [ (-1, 0); (0, 0); (0, 1); (1, 1) ] )
+    | Z -> [ (-1, 0); (0, 0); (0, 1); (1, 1) ]
+    | Λ -> [ (-1, -1); (0,0); (-1,1); (1,1); (-2,2); (2,2) ] )
     |> Seq.ofList
     |> Seq.map ((fun (x, y) ->
                   match rot with
