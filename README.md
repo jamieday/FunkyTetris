@@ -3,7 +3,7 @@
 
 Ideas:  
   - [ ] UI touch-ups (centering, colors, etc)
-  - [ ] New favicon
+  - [x] New favicon
   - [ ] Touch-ups: Rotation tweaks, display in mini boards
   - [x] Lambda Tetromino ;)
   - [ ] Scoring / leveling system
