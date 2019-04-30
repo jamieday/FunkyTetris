@@ -14,9 +14,6 @@ Ideas:
 
 Contributions are welcome. This project uses the Fable Framework version 1. See [Fable docs](http://fable.io/docs/) for more detailed information.
 
-After cloning, run the following commands in order to get right into it:
+After cloning, run `yarn restore` to restore all dependencies (F# & JS).
 
-1. Install JS dependencies: `yarn install`
-2. Move to src folder: `cd src`
-3. Install F# dependencies: `dotnet restore`
-4. Start Fable daemon and Webpack dev server: `dotnet fable yarn-start`
+Can play around in the dev environment with `yarn dev`.

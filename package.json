@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Tetris + Functional reactive programming",
   "scripts": {
+    "restore": "yarn && cd src && dotnet restore",
+    "dev": "dotnet fable yarn-start",
     "build": "webpack -p",
     "start": "webpack-dev-server",
     "test": "echo \"Error: no test specified\" && exit 1"
