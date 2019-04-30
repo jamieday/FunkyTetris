@@ -8,7 +8,7 @@ open Types
 open App.State
 open Page
 
-importAll "../sass/main.sass"
+importAll "./style.sass"
 
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
